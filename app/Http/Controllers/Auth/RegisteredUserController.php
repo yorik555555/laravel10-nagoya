@@ -58,6 +58,8 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return redirect(RouteServiceProvider::HOME);
+        //return redirect(RouteServiceProvider::HOME);
+        // ここでリダイレクト先を変更する
+        return redirect('/verify-email');
     }
 }
