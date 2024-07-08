@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin;
+use App\Http\Controllers\Admin\RestaurantController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,3 +22,12 @@ Route::get('/', function () {
 
 
 require __DIR__.'/auth.php';
+
+Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => 'auth:admin'], function () {
+    Route::get('home', [Admin\HomeController::class, 'index'])->name('home');
+    Route::get('users', [Admin\UserController::class, 'index'])->name('users.index');
+    Route::get('users/{user}', [Admin\UserController::class, 'show'])->name('users.show');
+
+    // Restaurantリソースのルートを追加
+    Route::resource('restaurants', RestaurantController::class);
+});
