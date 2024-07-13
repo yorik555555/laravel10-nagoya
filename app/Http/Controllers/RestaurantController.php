@@ -19,6 +19,8 @@ class RestaurantController extends Controller
         $sorts = [
             '掲載日が新しい順' => 'created_at desc',
             '価格が安い順' => 'lowest_price asc',
+            '評価が高い順' => 'rating desc',
+            '予約数が多い順' => 'popular desc', 
         ];
 
         // 現在の並べ替え状態
@@ -60,7 +62,12 @@ class RestaurantController extends Controller
             // 並べ替え条件がない場合はデフォルトで作成日時が新しい順
             $restaurants = $query->orderBy('created_at', 'desc')->paginate(15);
         } else {
-            $restaurants = $query->sortable($sort_query)->paginate(15);
+            // 並べ替え条件が予約数の多い順の場合
+            if (array_key_exists('popular', $sort_query)) {
+                $restaurants = $query->popularSortable($sort_query['popular'])->paginate(15);
+            } else {
+                $restaurants = $query->sortable($sort_query)->paginate(15);
+            }
         }
 
 
@@ -75,8 +82,7 @@ class RestaurantController extends Controller
     }
 
     public function show(Restaurant $restaurant)
-    {
-        
+    {      
         // レストランのカテゴリをロードする
         $restaurant->load('categories');
 

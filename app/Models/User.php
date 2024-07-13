@@ -7,11 +7,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Laravel\Cashier\Billable; // Billableトレイトをインポート
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, Billable; // Billableトレイトを追加
 
     /**
      * The attributes that are mass assignable.
@@ -49,4 +51,29 @@ class User extends Authenticatable implements MustVerifyEmail
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    /**
+     * Get the reviews for the user.
+     */
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    /**
+     * Get the reservations for the user.
+     */
+    public function reservations()
+    {
+        return $this->hasMany(Reservation::class);
+    }
+
+    /**
+     * The restaurants that belong to the user.
+     */
+    public function favoriteRestaurants(): BelongsToMany
+    {
+        return $this->belongsToMany(Restaurant::class, 'restaurant_user', 'user_id', 'restaurant_id')
+                    ->withTimestamps();
+    }
 }

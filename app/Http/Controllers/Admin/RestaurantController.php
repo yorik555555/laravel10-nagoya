@@ -77,7 +77,7 @@ class RestaurantController extends Controller
             $image = $request->file('image')->store('public/restaurants');
 
             // ファイル名のみを取得
-            $imageFileName = basename($image);
+            $restaurant->image = $imageFileName; // 画像ファイル名を更新
         } else {
             $imageFileName = '';
         }
@@ -180,11 +180,20 @@ class RestaurantController extends Controller
         $restaurant->save();
 
         // カテゴリの同期処理
-        $category_ids = array_filter($request->input('category_ids'));
+        $category_ids = array_filter($request->input('regular_holiday_ids', []));
+        // 定休日の同期処理
+        $regular_holiday_ids = $request->input('regular_holiday_ids', []); // 配列として初期化
+
+        if (!is_array($regular_holiday_ids)) {
+            $regular_holiday_ids = [];
+        }
+        // 配列のフィルタリング
+        $regular_holiday_ids = array_filter($regular_holiday_ids);
+
         $restaurant->categories()->sync($category_ids);
 
         // 定休日の同期処理
-        $regular_holiday_ids = array_filter($request->input('regular_holiday_ids'));
+        $regular_holiday_ids = array_filter($request->input('regular_holiday_ids', []));
         $restaurant->regular_holidays()->sync($regular_holiday_ids);
 
         return redirect()->route('admin.restaurants.show', $restaurant->id)

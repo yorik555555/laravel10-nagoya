@@ -3,8 +3,19 @@
 @section('content')
     <div class="container py-4 nagoyameshi-container">
         <div class="row justify-content-center">
-            <div class="col-xl-3 col-lg-4 col-md-5 col-sm-7">
+        <div class="col-xl-4 col-lg-5 col-md-6 col-sm-7">
                 <h1 class="mb-4 text-center">ログイン</h1>
+                <div>
+                   <P class="bg-danger text-white p-2 text-center">
+                    管理画面を「ログアウト」した後に<br>
+                    「ログイン」してください</P>
+                    <p class="text-danger lh-lg ">
+                        【動作確認用アカウント】<br>
+                        メールアドレス： naveespecial@hotmail.com<br>
+                        パスワード： naveespecial<br>
+                    </p>
+                    
+                </div>
 
                 <hr class="mb-4">
 

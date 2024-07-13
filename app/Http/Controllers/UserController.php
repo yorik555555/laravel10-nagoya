@@ -53,4 +53,6 @@ class UserController extends Controller
 
         return redirect()->route('user.index')->with('flash_message', '会員情報を編集しました。');
     }
+
+    
 }

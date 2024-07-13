@@ -8,13 +8,9 @@
         </a>
     </div>
     <div class="d-flex justify-content-center nagoyameshi-footer-link">
-        @if (Auth::guard('admin')->check())
-            <a href="{{ route('admin.company.index') }}" class="link-secondary me-3">会社概要</a>
-            <a href="{{ route('admin.terms.index') }}" class="link-secondary">利用規約</a>
-        @else
-            <a href="#" class="link-secondary me-3">会社概要</a>
-            <a href="#" class="link-secondary">利用規約</a>
-        @endif
+            <a href="{{ route('company.index') }}" class="link-secondary me-3">会社概要</a>
+            <a href="{{ route('terms.index') }}" class="link-secondary">利用規約</a>
+
     </div>
     <p class="text-center text-muted small mb-0">&copy; NAGOYAMESHI All rights reserved.</p>
 </footer>

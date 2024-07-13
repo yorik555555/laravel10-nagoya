@@ -40,4 +40,42 @@ class Restaurant extends Model
     {
         return $this->belongsToMany(RegularHoliday::class, 'regular_holiday_restaurant');
     }
+
+    /**
+     * Get the reviews for the restaurant.
+     */
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    public function ratingSortable($query, $direction)
+    {
+        return $query->withAvg('reviews', 'score')->orderBy('reviews_avg_score', $direction);
+    }
+
+    /**
+     * Get the reservations for the restaurant.
+     */
+    public function reservations()
+    {
+        return $this->hasMany(Reservation::class);
+    }
+
+    /**
+     * Define the many-to-many relationship with users.
+     */
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'restaurant_user')
+                    ->withTimestamps(); // Optional: if you want to maintain created_at and updated_at in the pivot table
+    }
+
+    /**
+     * Sort restaurants by the number of reservations.
+     */
+    public function scopePopularSortable($query, $direction)
+    {
+        return $query->withCount('reservations')->orderBy('reservations_count', $direction);
+    }
 }

@@ -3,9 +3,15 @@
 @section('content')
     <div class="container my-4 nagoyameshi-container">
         <div class="row justify-content-center">
-            <div class="col-xl-3 col-lg-4 col-md-5 col-sm-7">
+            <div class="col-xl-4 col-lg-5 col-md-6 col-sm-7">
                 <h1 class="mb-4 text-center">ログイン</h1>
-
+                <div>
+                    <p class="text-danger lh-lg">
+                        【動作確認用アカウント】<br>
+                        メールアドレス： admin@example.com<br>
+                        パスワード： nagoyameshi<br>
+                    </p>
+                </div>
                 <hr class="mb-4">
 
                 @if ($errors->any())
