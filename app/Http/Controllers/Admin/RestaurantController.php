@@ -79,6 +79,7 @@ class RestaurantController extends Controller
             $imageFileName = '';
         }
 
+
         // データベースに新規登録
         $restaurant = new Restaurant();
         $restaurant->name = $request->input('name');
