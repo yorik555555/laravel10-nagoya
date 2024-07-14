@@ -78,5 +78,8 @@ class Kernel extends HttpKernel
         // ここに新しく追加する
         'subscribed' => \App\Http\Middleware\Subscribed::class,
         'notsubscribed' => \App\Http\Middleware\NotSubscribed::class,
+
+        // 既存のミドルウェア
+        'session.timeout' => \App\Http\Middleware\SessionTimeout::class,
     ];
 }

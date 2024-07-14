@@ -36,7 +36,7 @@ Route::group(['middleware' => 'guest:admin'], function () {
 });
 
 // 一般ユーザー用のルート（ログインユーザー向け）
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', 'session.timeout:120'])->group(function () {
     // Home ルートを再定義
     Route::get('/', [HomeController::class, 'index'])->name('home');
 
