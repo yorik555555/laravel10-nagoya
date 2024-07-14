@@ -1,92 +1,215 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Restaurant;
 use App\Models\Category;
+use App\Models\RegularHoliday; // RegularHolidayモデルをインポート
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class RestaurantController extends Controller
 {
+    /**
+     * Display a listing of the resource.
+     */
     public function index(Request $request)
     {
-        // フォームからのデータを取得
         $keyword = $request->input('keyword');
-        $category_id = $request->input('category_id');
-        $price = $request->input('price');
 
-        // 並べ替えの選択肢
-        $sorts = [
-            '掲載日が新しい順' => 'created_at desc',
-            '価格が安い順' => 'lowest_price asc',
-            '評価が高い順' => 'rating desc',
-            '予約数が多い順' => 'popular desc', 
-        ];
-
-        // 現在の並べ替え状態
-        $sorted = $request->input('select_sort', 'created_at desc');
-
-        // レストランデータを取得
+        // ページネーション適用済みのデータを取得
         $query = Restaurant::query();
-
-        if ($keyword) {
-            $query->where(function ($query) use ($keyword) {
-                $query->where('name', 'like', "%{$keyword}%")
-                      ->orWhere('address', 'like', "%{$keyword}%")
-                      ->orWhereHas('categories', function ($query) use ($keyword) {
-                          $query->where('name', 'like', "%{$keyword}%");
-                      });
-            });
+        if (!empty($keyword)) {
+            $query->where('name', 'like', '%' . $keyword . '%');
         }
+        $restaurants = $query->paginate(10); // 1ページあたり10件表示
 
-        if ($category_id) {
-            $query->whereHas('categories', function ($query) use ($category_id) {
-                // カテゴリーテーブルのidを明示的に指定
-                $query->where('categories.id', $category_id);
-            });
-        }
-
-        if ($price) {
-            $query->where('lowest_price', '<=', $price);
-        }
-
-        // 並べ替え条件の設定
-        $sort_query = [];
-        if ($request->has('select_sort')) {
-            $slices = explode(' ', $request->input('select_sort'));
-            $sort_query[$slices[0]] = $slices[1];
-        }
-
-        // ソートとページネーションを適用
-        if (empty($sort_query)) {
-            // 並べ替え条件がない場合はデフォルトで作成日時が新しい順
-            $restaurants = $query->orderBy('created_at', 'desc')->paginate(15);
-        } else {
-            // 並べ替え条件が予約数の多い順の場合
-            if (array_key_exists('popular', $sort_query)) {
-                $restaurants = $query->popularSortable($sort_query['popular'])->paginate(15);
-            } else {
-                $restaurants = $query->sortable($sort_query)->paginate(15);
-            }
-        }
-
-
-        // カテゴリデータを取得
-        $categories = Category::all();
-
-        // データの総数
         $total = $restaurants->total();
 
-
-        return view('restaurants.index', compact('keyword', 'category_id', 'price', 'sorts', 'sorted', 'restaurants', 'categories', 'total'));
+        return view('admin.restaurants.index', compact('restaurants', 'keyword', 'total'));
     }
 
-    public function show(Restaurant $restaurant)
-    {      
-        // レストランのカテゴリをロードする
-        $restaurant->load('categories');
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        $categories = Category::all(); // カテゴリテーブルのすべてのデータを取得
+        $regular_holidays = RegularHoliday::all(); // 定休日テーブルのすべてのデータを取得
 
-        // ビューにデータを渡す
-        return view('restaurants.show', compact('restaurant'));
+        return view('admin.restaurants.create', compact('categories', 'regular_holidays'));
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        // バリデーションルール
+        $rules = [
+            'name' => 'required',
+            'description' => 'required',
+            'lowest_price' => 'required|numeric|min:0',
+            'highest_price' => 'required|numeric|min:0|gte:lowest_price',
+            'postal_code' => 'required|numeric|digits:7',
+            'address' => 'required',
+            'opening_time' => 'required',
+            'closing_time' => 'required|after:opening_time',
+            'seating_capacity' => 'required|numeric|min:0',
+            'image' => 'sometimes|image|max:2048', // 画像ファイル、最大2MB
+        ];
+
+        // バリデーション実行
+        $validator = Validator::make($request->all(), $rules);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        // 画像ファイル処理
+        if ($request->hasFile('image') && $request->file('image')->isValid()) {
+            // ファイルを保存してパスを取得
+            $image = $request->file('image')->store('public/restaurants');
+
+            // ファイル名のみを取得
+            $restaurant->image = $imageFileName; // 画像ファイル名を更新
+        } else {
+            $imageFileName = '';
+        }
+
+        // データベースに新規登録
+        $restaurant = new Restaurant();
+        $restaurant->name = $request->input('name');
+        $restaurant->image = $imageFileName; // 画像ファイル名
+        $restaurant->description = $request->input('description');
+        $restaurant->lowest_price = $request->input('lowest_price');
+        $restaurant->highest_price = $request->input('highest_price');
+        $restaurant->postal_code = $request->input('postal_code');
+        $restaurant->address = $request->input('address');
+        $restaurant->opening_time = $request->input('opening_time');
+        $restaurant->closing_time = $request->input('closing_time');
+        $restaurant->seating_capacity = $request->input('seating_capacity');
+        $restaurant->save();
+
+        $category_ids = array_filter($request->input('category_ids'));
+        $restaurant->categories()->sync($category_ids);
+
+        // 定休日の同期処理
+        $regular_holiday_ids = array_filter($request->input('regular_holiday_ids'));
+        $restaurant->regular_holidays()->sync($regular_holiday_ids);
+
+        return redirect()->route('admin.restaurants.index')
+            ->with('flash_message', '店舗を登録しました。');
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(Restaurant $restaurant)
+    {
+        return view('admin.restaurants.show', compact('restaurant'));
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Restaurant $restaurant)
+    {
+
+        $categories = Category::all(); // categoriesテーブルのすべてのデータを取得
+        $category_ids = $restaurant->categories->pluck('id')->toArray(); // 店舗に設定されているカテゴリのIDの配列を取得
+        $regular_holidays = RegularHoliday::all(); // regular_holidaysテーブルのすべてのデータを取得
+        $regular_holiday_ids = $restaurant->regular_holidays->pluck('id')->toArray(); // 店舗に設定されている定休日のIDの配列を取得
+
+        return view('admin.restaurants.edit', compact('restaurant', 'categories', 'category_ids', 'regular_holidays', 'regular_holiday_ids'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, Restaurant $restaurant)
+    {
+        // バリデーションルール
+        $rules = [
+            'name' => 'required',
+            'description' => 'required',
+            'lowest_price' => 'required|numeric|min:0',
+            'highest_price' => 'required|numeric|min:0|gte:lowest_price',
+            'postal_code' => 'required|numeric|digits:7',
+            'address' => 'required',
+            'opening_time' => 'required',
+            'closing_time' => 'required|after:opening_time',
+            'seating_capacity' => 'required|numeric|min:0',
+            'image' => 'sometimes|image|max:2048', // 画像ファイル、最大2MB
+        ];
+
+        // バリデーション実行
+        $validator = Validator::make($request->all(), $rules);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        // 画像ファイル処理
+        if ($request->hasFile('image') && $request->file('image')->isValid()) {
+            // ファイルを保存してパスを取得
+            $image = $request->file('image')->store('public/restaurants');
+
+            // ファイル名のみを取得
+            $imageFileName = basename($image);
+            $restaurant->image = $imageFileName; // 画像ファイル名を更新
+        }
+
+        // データベースを更新
+        $restaurant->name = $request->input('name');
+        $restaurant->description = $request->input('description');
+        $restaurant->lowest_price = $request->input('lowest_price');
+        $restaurant->highest_price = $request->input('highest_price');
+        $restaurant->postal_code = $request->input('postal_code');
+        $restaurant->address = $request->input('address');
+        $restaurant->opening_time = $request->input('opening_time');
+        $restaurant->closing_time = $request->input('closing_time');
+        $restaurant->seating_capacity = $request->input('seating_capacity');
+        $restaurant->save();
+
+        // カテゴリの同期処理
+        $category_ids = array_filter($request->input('regular_holiday_ids', []));
+        // 定休日の同期処理
+        $regular_holiday_ids = $request->input('regular_holiday_ids', []); // 配列として初期化
+
+        if (!is_array($regular_holiday_ids)) {
+            $regular_holiday_ids = [];
+        }
+        // 配列のフィルタリング
+        $regular_holiday_ids = array_filter($regular_holiday_ids);
+
+        $restaurant->categories()->sync($category_ids);
+
+        // 定休日の同期処理
+        $regular_holiday_ids = array_filter($request->input('regular_holiday_ids', []));
+        $restaurant->regular_holidays()->sync($regular_holiday_ids);
+
+        return redirect()->route('admin.restaurants.show', $restaurant->id)
+            ->with('flash_message', '店舗を編集しました。');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Restaurant $restaurant)
+    {
+        // レストランを削除
+        $restaurant->delete();
+
+        // フラッシュメッセージを設定し、店舗一覧ページにリダイレクト
+        return redirect()->route('admin.restaurants.index')
+            ->with('flash_message', '店舗を削除しました。');
     }
 }
