@@ -97,12 +97,13 @@ class RestaurantController extends Controller
         $restaurant->save();
 
         // 画像ファイル処理
-        $imageFileName = '';
         if ($request->hasFile('image') && $request->file('image')->isValid()) {
             // ファイルを保存してパスを取得
             $image = $request->file('image')->store('public/restaurants');
             $imageFileName = basename($image); // ファイル名のみを取得
             $restaurant->image = $imageFileName; // 画像ファイル名を更新
+        } else {
+            $imageFileName = ''; // ここで初期化する必要があります
         }
 
         $restaurant->save(); // ここで保存する前に画像ファイルを処理する
