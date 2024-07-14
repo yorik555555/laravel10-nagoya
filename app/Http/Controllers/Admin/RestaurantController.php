@@ -139,7 +139,7 @@ class RestaurantController extends Controller
         $regular_holiday_ids = $restaurant->regular_holidays->pluck('id')->toArray(); // 店舗に設定されている定休日のIDの配列を取得
 
         return view('admin.restaurants.edit', compact('restaurant', 'categories', 'category_ids', 'regular_holidays', 'regular_holiday_ids'));
-}}
+    }
 
     /**
      * Update the specified resource in storage.
