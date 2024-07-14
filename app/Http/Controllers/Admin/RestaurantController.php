@@ -197,22 +197,15 @@ class RestaurantController extends Controller
 
         // 定休日の同期処理
         $regular_holiday_ids = $request->input('regular_holiday_ids', []);
-$restaurant->regular_holidays()->sync($regular_holiday_ids);
+        $restaurant->regular_holidays()->sync($regular_holiday_ids);
 
-return redirect()->route('admin.restaurants.show', $restaurant->id)
-    ->with('flash_message', '店舗を編集しました。');
-    
         // 配列のフィルタリング
         $regular_holiday_ids = array_filter($regular_holiday_ids);
 
         $restaurant->categories()->sync($category_ids);
 
-        // 定休日の同期処理
-        $regular_holiday_ids = array_filter($request->input('regular_holiday_ids', []));
-        $restaurant->regular_holidays()->sync($regular_holiday_ids);
-
-        return redirect()->route('admin.restaurants.show', $restaurant->id)
-            ->with('flash_message', '店舗を編集しました。');
+return redirect()->route('admin.restaurants.show', $restaurant->id)
+    ->with('flash_message', '店舗を編集しました。');
     }
 
     /**
