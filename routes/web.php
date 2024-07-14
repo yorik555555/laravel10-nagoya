@@ -36,7 +36,7 @@ Route::group(['middleware' => 'guest:admin'], function () {
 });
 
 // 一般ユーザー用のルート（ログインユーザー向け）
-Route::middleware(['auth', 'verified', 'session.timeout:120'])->group(function () {
+Route::middleware(['auth', 'verified', 'session.timeout'])->group(function () {
     // Home ルートを再定義
     Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -79,30 +79,18 @@ Route::middleware(['auth', 'verified', 'session.timeout:120'])->group(function (
 // Subscription コントローラのルート
 Route::middleware(['auth', 'verified'])->group(function () {
     // 有料プランに未登録の場合のみアクセス可能なルート
-    Route::get('subscription/create', [SubscriptionController::class, 'create'])
-        ->name('subscription.create')
-        ->middleware('notsubscribed');
-
-    Route::post('subscription', [SubscriptionController::class, 'store'])
-        ->name('subscription.store')
-        ->middleware('notsubscribed');
+    Route::middleware('notsubscribed')->group(function () {
+        Route::get('subscription/create', [SubscriptionController::class, 'create'])->name('subscription.create');
+        Route::post('subscription', [SubscriptionController::class, 'store'])->name('subscription.store');
+    });
 
     // 有料プランに登録済みの場合のみアクセス可能なルート
-    Route::get('subscription/edit', [SubscriptionController::class, 'edit'])
-        ->name('subscription.edit')
-        ->middleware('subscribed');
-
-    Route::match(['put', 'patch'], 'subscription', [SubscriptionController::class, 'update'])
-        ->name('subscription.update')
-        ->middleware('subscribed');
-
-    Route::get('subscription/cancel', [SubscriptionController::class, 'cancel'])
-        ->name('subscription.cancel')
-        ->middleware('subscribed');
-
-    Route::delete('subscription', [SubscriptionController::class, 'destroy'])
-        ->name('subscription.destroy')
-        ->middleware('subscribed');
+    Route::middleware('subscribed')->group(function () {
+        Route::get('subscription/edit', [SubscriptionController::class, 'edit'])->name('subscription.edit');
+        Route::match(['put', 'patch'], 'subscription', [SubscriptionController::class, 'update'])->name('subscription.update');
+        Route::get('subscription/cancel', [SubscriptionController::class, 'cancel'])->name('subscription.cancel');
+        Route::delete('subscription', [SubscriptionController::class, 'destroy'])->name('subscription.destroy');
+    });
 });
 
 // 未認証ユーザがアクセス可能なルート（会社概要ページと利用規約ページ）
