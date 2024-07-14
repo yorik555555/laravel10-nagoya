@@ -96,11 +96,23 @@ class RestaurantController extends Controller
         $restaurant->seating_capacity = $request->input('seating_capacity');
         $restaurant->save();
 
+        // 画像ファイル処理
+        $imageFileName = '';
+        if ($request->hasFile('image') && $request->file('image')->isValid()) {
+            // ファイルを保存してパスを取得
+            $image = $request->file('image')->store('public/restaurants');
+            $imageFileName = basename($image); // ファイル名のみを取得
+            $restaurant->image = $imageFileName; // 画像ファイル名を更新
+        }
+
+        $restaurant->save(); // ここで保存する前に画像ファイルを処理する
+
+        // カテゴリの同期処理
         $category_ids = array_filter($request->input('category_ids'));
         $restaurant->categories()->sync($category_ids);
 
         // 定休日の同期処理
-        $regular_holiday_ids = array_filter($request->input('regular_holiday_ids'));
+        $regular_holiday_ids = $request->input('regular_holiday_ids', []);
         $restaurant->regular_holidays()->sync($regular_holiday_ids);
 
         return redirect()->route('admin.restaurants.index')
@@ -127,7 +139,7 @@ class RestaurantController extends Controller
         $regular_holiday_ids = $restaurant->regular_holidays->pluck('id')->toArray(); // 店舗に設定されている定休日のIDの配列を取得
 
         return view('admin.restaurants.edit', compact('restaurant', 'categories', 'category_ids', 'regular_holidays', 'regular_holiday_ids'));
-    }
+}}
 
     /**
      * Update the specified resource in storage.
@@ -158,13 +170,12 @@ class RestaurantController extends Controller
         }
 
         // 画像ファイル処理
-        if ($request->hasFile('image') && $request->file('image')->isValid()) {
-            // ファイルを保存してパスを取得
-            $image = $request->file('image')->store('public/restaurants');
+        $imageFileName = $restaurant->image; // 現在の画像ファイル名を取得
 
-            // ファイル名のみを取得
-            $imageFileName = basename($image);
-            $restaurant->image = $imageFileName; // 画像ファイル名を更新
+        if ($request->hasFile('image') && $request->file('image')->isValid()) {
+            // 新しい画像がアップロードされた場合
+            $image = $request->file('image')->store('public/restaurants');
+            $imageFileName = basename($image); // 新しい画像ファイル名を取得
         }
 
         // データベースを更新
@@ -177,16 +188,20 @@ class RestaurantController extends Controller
         $restaurant->opening_time = $request->input('opening_time');
         $restaurant->closing_time = $request->input('closing_time');
         $restaurant->seating_capacity = $request->input('seating_capacity');
+        $restaurant->image = $imageFileName; // 更新後の画像ファイル名を設定
         $restaurant->save();
 
         // カテゴリの同期処理
-        $category_ids = array_filter($request->input('regular_holiday_ids', []));
-        // 定休日の同期処理
-        $regular_holiday_ids = $request->input('regular_holiday_ids', []); // 配列として初期化
+        $category_ids = $request->input('category_ids', []);
+        $restaurant->categories()->sync($category_ids);
 
-        if (!is_array($regular_holiday_ids)) {
-            $regular_holiday_ids = [];
-        }
+        // 定休日の同期処理
+        $regular_holiday_ids = $request->input('regular_holiday_ids', []);
+$restaurant->regular_holidays()->sync($regular_holiday_ids);
+
+return redirect()->route('admin.restaurants.show', $restaurant->id)
+    ->with('flash_message', '店舗を編集しました。');
+    
         // 配列のフィルタリング
         $regular_holiday_ids = array_filter($regular_holiday_ids);
 
