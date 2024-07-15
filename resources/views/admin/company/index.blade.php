@@ -7,9 +7,10 @@
 
                 <h1 class="mb-4 text-center">会社概要</h1>    
                 
+                @foreach ($companies as $company)
                 <div class="d-flex justify-content-end align-items-end mb-3">                    
                     <div>
-                        <a href="{{ route('admin.company.edit', $company) }}" class="me-2">編集</a>                        
+                        <a href="{{ route('admin.company.edit', $company->id) }}" class="me-2">編集</a>                        
                     </div>
                 </div>                 
                 
@@ -89,7 +90,8 @@
                             <span>{{ $company->number_of_employees }}</span>
                         </div>
                     </div>                                       
-                </div>                                               
+                </div>  
+                @endforeach                                             
             </div>                          
         </div>
     </div>       
