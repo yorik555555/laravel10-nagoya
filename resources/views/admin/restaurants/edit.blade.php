@@ -42,6 +42,7 @@
                     </div>
 
                     <div class="form-group row mb-3">
+                    <p class="text-danger lh-lg">現時点では、外部のクラウドストレージを使用していないため画像選択はできません</p>
                         <label for="image" class="col-md-5 col-form-label text-md-left fw-bold">店舗画像</label>
 
                         <div class="col-md-7">
