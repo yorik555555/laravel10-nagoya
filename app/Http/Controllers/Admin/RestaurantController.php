@@ -76,9 +76,10 @@ class RestaurantController extends Controller
             $image = $request->file('image')->store('public/restaurants');
             $imageFileName = basename($image);
         } else {
-            $imageFileName = '';
+            //$imageFileName = '';
+            // 画像が選択されていない場合
+            $imageFileName = 'no_image.jpg'; // デフォルトの「no image」画像を設定
         }
-
 
         // データベースに新規登録
         $restaurant = new Restaurant();
@@ -157,13 +158,31 @@ class RestaurantController extends Controller
         }
 
         // 画像ファイル処理
-        $imageFileName = $restaurant->image; // 現在の画像ファイル名を取得
+        /*$imageFileName = $restaurant->image; // 現在の画像ファイル名を取得
 
         if ($request->hasFile('image') && $request->file('image')->isValid()) {
             // 新しい画像がアップロードされた場合
             $image = $request->file('image')->store('public/restaurants');
             $imageFileName = basename($image); // 新しい画像ファイル名を取得
         }
+        else {
+            $imageFileName = '';
+        }*/
+
+
+        // 画像ファイル処理
+        if ($request->hasFile('image') && $request->file('image')->isValid()) {
+            // 新しい画像がアップロードされた場合
+            $image = $request->file('image')->store('public/restaurants');
+            $imageFileName = basename($image); // 新しい画像ファイル名を取得
+        } elseif ($request->has('remove_image') && $request->input('remove_image') == 1) {
+            // 画像が削除された場合
+            $imageFileName = ''; // 空の画像ファイル名を設定（画像を削除する場合の処理）
+        } else {
+            // 画像が変更されなかった場合
+            $imageFileName = $restaurant->image ?: 'no_image.jpg'; // 現在の画像ファイル名または「no image」画像を設定
+        }
+
 
         // データベースを更新
         $restaurant->name = $request->input('name');

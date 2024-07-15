@@ -51,9 +51,16 @@
 
                     <!-- 選択された画像の表示場所 -->
                     @if ($restaurant->image !== '')
-                        <div class="row" id="imagePreview"><img src="{{ asset('storage/restaurants/'. $restaurant->image) }}" class="mb-3" alt="Restaurant Image"></div>
+                        <div class="row mb-3" id="imagePreview">
+                            <img src="{{ asset('storage/restaurants/' . $restaurant->image) }}" class="mb-3" alt="Restaurant Image">
+                            <!-- 画像削除ボタン -->
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="remove_image" name="remove_image" value="1">
+                                <label class="form-check-label" for="remove_image">画像を削除する</label>
+                            </div>
+                        </div>
                     @else
-                        <div class="row" id="imagePreview"></div>
+                        <div class="row mb-3" id="imagePreview"></div>
                     @endif
 
                     <div class="form-group row mb-3">
