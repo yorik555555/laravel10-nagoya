@@ -7,7 +7,10 @@
 
                 <h1 class="mb-4 text-center">会社概要</h1>    
                 
-                @if ($company)
+                @if ($companies->isEmpty())
+                    <p>会社概要がありません。</p>
+                @else
+                    @foreach ($companies as $company)
                     <div class="d-flex justify-content-end align-items-end mb-3">                    
                         <div>
                             <a href="{{ route('admin.company.edit', ['company' => $company->id]) }}" class="me-2">編集</a>                        
@@ -91,9 +94,8 @@
                             </div>
                         </div>                                       
                     </div>  
-                @else
-                    <p>会社情報が見つかりません。</p>
-                @endif                                             
+                    @endforeach
+                @endif                                           
             </div>                          
         </div>
     </div>       
