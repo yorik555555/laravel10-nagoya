@@ -14,8 +14,8 @@ class CompanyController extends Controller
      */
     public function index()
     {
-        // companiesテーブルの全データを取得
-        $company = Company::all();
+        // companiesテーブルの最初のデータを取得
+        $company = Company::first();
 
         // ビューにデータを渡して表示
         return view('admin.company.index', compact('company'));
