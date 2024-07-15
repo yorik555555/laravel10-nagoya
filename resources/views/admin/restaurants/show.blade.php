@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('admin.admin')
 
 @section('content')
     <!-- 店舗の削除用モーダル -->

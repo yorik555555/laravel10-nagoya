@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('admin.admin')
 
 @push('scripts')
     <script src="{{ asset('/js/preview.js') }}"></script>
