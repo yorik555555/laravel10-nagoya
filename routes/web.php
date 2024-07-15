@@ -50,7 +50,7 @@ Route::middleware(['auth', 'verified', 'session.timeout'])->group(function () {
     Route::patch('user/{user}', [UserController::class, 'update'])->name('user.update');
 
     // Reviewのルート
-    Route::prefix('restaurants')->group(function () {
+   /* Route::prefix('restaurants')->group(function () {
         Route::get('{restaurant}/reviews', [ReviewController::class, 'index'])->name('restaurants.reviews.index');
         Route::post('{restaurant}/reviews', [ReviewController::class, 'store'])->name('restaurants.reviews.store');
         Route::get('{restaurant}/reviews/create', [ReviewController::class, 'create'])->name('restaurants.reviews.create');
@@ -58,7 +58,7 @@ Route::middleware(['auth', 'verified', 'session.timeout'])->group(function () {
         Route::put('{restaurant}/reviews/{review}', [ReviewController::class, 'update'])->name('restaurants.reviews.update');
         Route::delete('{restaurant}/reviews/{review}', [ReviewController::class, 'destroy'])->name('restaurants.reviews.destroy');
         Route::get('{restaurant}/reviews/{review}/edit', [ReviewController::class, 'edit'])->name('restaurants.reviews.edit');
-    });
+    });*/
 
     // Reservationのルート
     Route::prefix('restaurants')->group(function () {
